@@ -21,5 +21,5 @@ variable "os_type" {
 }
 variable "sku_name" {
   type    = string
-  default = "B1"
+  default = "S1"
 }
