@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Minimal Node.js app for Azure deployment using Terraform & GitHub Actions",
     "main": "app.js",
-    "scripts": {a
+    "scripts": {
         "start": "node app.js"
     },
     "dependencies": {

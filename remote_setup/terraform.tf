@@ -1,6 +1,8 @@
 ##################################################################################
 # TERRAFORM CONFIG
 ##################################################################################
+# Specify the required Terraform providers and their versions.
+# These versions ensure compatibility and stability of resources being used.
 terraform {
   required_providers {
     azurerm = {
