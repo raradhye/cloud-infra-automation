@@ -77,7 +77,7 @@ terraform apply -auto-approve
 GitHub Actions are triggered by `push` or `pull_request` events. The pipeline performs:
 
 ### On All Events
-- Clone repository  
+- Check out the repository code
 - Install Terraform  
 - Initialize with remote backend  
 - Format check (`terraform fmt`)  
