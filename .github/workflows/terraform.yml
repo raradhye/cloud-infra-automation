@@ -1,37 +1,34 @@
 name: 'Terraform'
 
-on: [push, pull_request]
+on: [push, pull_request]  # Trigger workflow on push and pull request events
 
 permissions:
-  pull-requests: write
-  contents: read
+  pull-requests: write  # Needed to comment on PRs
+  contents: read        # Default read access for repo content
 
 env:
-  TF_LOG: INFO
+  TF_LOG: INFO          # Set Terraform logging level to INFO
 
 jobs:
   terraform:
     name: 'Terraform'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Run on latest Ubuntu runner
 
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-    # Set the working directory to main for the config files
     defaults:
       run:
         shell: bash
-        working-directory: ./main
+        working-directory: ./main # Set the working directory for all run steps
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
+    # Step 1: Checkout repository code to the GitHub runner
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Install the preferred version of Terraform CLI 
+    # Step 2: Setup Terraform CLI on the runner
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
-#      with:
-#        terraform_version: 1.0.10
-# Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+
+    # Step 3: Initialize Terraform with remote backend configuration
     - name: Terraform Init
       id: init
       env:
@@ -44,20 +41,19 @@ jobs:
         CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
       run: terraform init -upgrade -backend-config="storage_account_name=$STORAGE_ACCOUNT" -backend-config="container_name=$CONTAINER_NAME" -backend-config="resource_group_name=$RESOURCE_GROUP"
 
-    # Check terraform format for Push and PR on non-main branch
+    # Step 4: Check Terraform formatting on non-main branches
     - name: Terraform fmt
       id: fmt
       if: github.ref != 'refs/heads/main'
       run: terraform fmt -check
   
-    # Run terraform validate for push and PR on non-main branch
-    # Run even-if terraform format is sucess or failure
+    # Step 5: Validate Terraform code syntax and configuration
     - name: Terraform Validate
       id: validate
       if: github.ref != 'refs/heads/main' && (success() || failure())
       run: terraform validate -no-color
 
-    # Run a terraform plan for pull requests only
+    # Step 6: Run Terraform plan on pull requests
     - name: Terraform Plan
       id: plan
       env:
@@ -68,7 +64,7 @@ jobs:
       if: github.event_name == 'pull_request'
       run: terraform plan -no-color
 
-    # Prepare skip list check file with that Checkov will use at later step
+    # Step 7: Read Checkov skip list for rule exclusions
     - name: Read Checkov Skip List
       if: github.event_name == 'pull_request'
       id: skiplist
@@ -76,7 +72,7 @@ jobs:
         SKIPS=$(cat ../.github/checkov_skip.txt | tr -d '\n' | tr -s ' ')
         echo "skip_list=$SKIPS" >> $GITHUB_OUTPUT
 
-    # Run Checkov against configuration
+    # Step 8: Run Checkov for security and compliance checks
     - name: Checkov
       if: github.event_name == 'pull_request'
       id: checkov
@@ -87,10 +83,9 @@ jobs:
         container_user: 1000
         output_format: github_failed_only
         soft_fail: false
-#        skip_check: CKV_AZURE_88,CKV_AZURE_71,CKV_AZURE_16,CKV_AZURE_80,CKV_AZURE_63,CKV_AZURE_18,CKV_AZURE_65,CKV_AZURE_17,CKV_AZURE_13,CKV_AZURE_78,CKV_AZURE_66,CKV_AZURE_44,CKV_AZURE_35,CKV_AZURE_43,CKV_AZURE_33,CKV_AZURE_3,CKV2_AZURE_1,CKV2_AZURE_18,CKV2_AZURE_8,CKV2_AZURE_21,CKV_GIT_4,CKV_AZURE_212,CKV_AZURE_225,CKV_AZURE_222,CKV_AZURE_14,CKV_AZURE_213,CKV_AZURE_59,CKV_AZURE_38,CKV_AZURE_33,CKV_AZURE_190,CKV_AZURE_206,CKV2_AZURE_47,CKV2_AZURE_40,CKV2_AZURE_41
         skip_check: ${{ steps.skiplist.outputs.skip_list }}
 
-    # Add a comment to pull requests with plan results
+    # Step 9: Add a comment to the pull request with validation and plan results
     - name: add-plan-comment
       id: comment
       uses: actions/github-script@v3
@@ -129,7 +124,7 @@ jobs:
             body: output
           })
 
-      # On push to main, build or change infrastructure according to Terraform configuration files
+    # Step 10: Apply Terraform changes automatically on push to main
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       env:

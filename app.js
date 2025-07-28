@@ -1,3 +1,18 @@
+/**
+ * --------------------------------------------------------------------------
+ * app.js
+ *
+ * Minimal Express.js application to support CI/CD pipeline testing and 
+ * Azure App Service deployment using Terraform and GitHub Actions.
+ *
+ * Endpoints:
+ *  - GET /          : Returns a welcome message
+ *  - GET /health    : Simple health check endpoint
+ *  - GET /version   : Returns app version (uses VERSION env var or defaults to 1.0.0)
+ *
+ * Author: Rajesh Aradhye
+ * --------------------------------------------------------------------------
+ */
 const express = require('express');
 const app = express();
 
