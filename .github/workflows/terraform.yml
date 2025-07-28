@@ -2,6 +2,10 @@ name: 'Terraform'
 
 on: [push, pull_request]
 
+permissions:
+  pull-requests: write
+  contents: read
+
 env:
   TF_LOG: INFO
 
