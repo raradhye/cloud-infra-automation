@@ -10,7 +10,6 @@ resource "random_integer" "sa_num" {
 # LOCALS
 # Define reusable naming conventions for resources
 ##################################################################################
-
 locals {
   resource_group_name    = "rg-${var.application_name}-${var.environment_name}"
   storage_account_name   = "st${lower(var.application_name)}${random_integer.sa_num.result}"
